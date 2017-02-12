@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WKRequest'
-  s.version          = '0.1.0'
+  s.version          = '1.0'
   s.summary          = 'This pod is useful for HTTP & TCP requests'
 
 # This description is used to generate tags and improve search results.
