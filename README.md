@@ -22,7 +22,7 @@ pod "WKRequest"
 
 ## Author
 
-Walid Kayhal, walid.kayhal.ext@netgem.com
+Walid Kayhal, walid@kayhal.fr
 
 ## License
 
