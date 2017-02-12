@@ -1,0 +1,6 @@
+use_frameworks!
+target 'WKRequest_Tests' do
+  pod 'WKRequest', :path => '../'
+  
+  
+end
