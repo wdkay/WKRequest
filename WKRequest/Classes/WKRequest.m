@@ -93,7 +93,7 @@ static WKRequest *instance;
 
 - (NSUInteger)cancelAllRequests
 {
-    NSUInteger *tasksCanceled = 0;
+    NSUInteger tasksCanceled = 0;
     
     for (NSURLSessionTask *task in [self.tasks copy])
     {
@@ -105,7 +105,7 @@ static WKRequest *instance;
 
 - (NSUInteger)cancelRequestWithIdentifier:(NSInteger)identifier
 {
-    NSInteger *tasksCanceled = 0;
+    NSInteger tasksCanceled = 0;
     NSArray *tasks = [self.tasks filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"taskIdentifier == %d", identifier]];
     
     for (NSURLSessionTask *task in self.tasks)
