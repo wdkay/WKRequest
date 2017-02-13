@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-This pod is useful for HTTP & TCP requests, light and powerful.
+WKRequest, light and powerful, useful to send request to a server (HTTP & TCP).
                        DESC
 
   s.homepage         = 'https://bitbucket.org/wdkay/wkrequest'
