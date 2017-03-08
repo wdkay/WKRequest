@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WKRequest'
-  s.version          = '1.0'
+  s.version          = '1.1'
   s.summary          = 'This pod is useful for HTTP & TCP requests'
 
 # This description is used to generate tags and improve search results.
@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
 WKRequest, light and powerful, useful to send request to a server (HTTP & TCP).
                        DESC
 
-  s.homepage         = 'https://bitbucket.org/wdkay/wkrequest'
+  s.homepage         = 'https://github.com/wdkay/WKRequest'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Walid Kayhal' => 'walid@kayhal.fr' }
