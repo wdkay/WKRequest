@@ -25,7 +25,7 @@ WKRequest, light and powerful, useful to send request to a server (HTTP & TCP).
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Walid Kayhal' => 'walid@kayhal.fr' }
-  s.source           = { :git => 'https://wdkay@bitbucket.org/wdkay/wkrequest.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/wdkay/WKRequest', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '8.0'
