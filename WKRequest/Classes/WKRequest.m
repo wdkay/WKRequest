@@ -56,7 +56,7 @@ static WKRequest *instance;
 + (WKRequest *)sharedInstance
 {
     if(!instance) instance = [[WKRequest alloc] initPrivate];
-
+    
     return instance;
 }
 
@@ -68,7 +68,7 @@ static WKRequest *instance;
         self.allHeaders = [NSMutableDictionary new];
         self.timeoutInterval = kDefaultTimeOutInterval;
     }
-
+    
     return instance;
 }
 
@@ -126,7 +126,7 @@ static WKRequest *instance;
 - (NSNumber *)requestWithParameters:(id)parameters url:(NSString *)url method:(WKRequestMethod)method credential:(WKRequestCredential *)credential completion:(CompletionHandler)completion
 {
     NSMutableURLRequest *request = [NSMutableURLRequest new];
-
+    
     if(credential)
     {
         [self authentificationWithRequest:request url:url crendential:credential completion:completion];
@@ -146,9 +146,9 @@ static WKRequest *instance;
 - (void)authentificationWithRequest:(NSMutableURLRequest *)request url:(NSString *)url crendential:(WKRequestCredential *)credential completion:(CompletionHandler)completion
 {
     [self queryForRequest:request parameters:nil url:url method:WKRequestMethodPost credential:credential completion:^(NSError *error, id data) {
-
+        
         if([WKRequestTokenManager sharedInstance].isExpired) [[WKRequestTokenManager sharedInstance] initializeWithData:data];
-
+        
         if(completion) completion(error, data);
     }];
 }
@@ -164,42 +164,42 @@ static WKRequest *instance;
         case WKRequestMethodGet:
             [self queryForGetRequest:request atUrl:url withParameters:parameters];
             break;
-
+            
         case WKRequestMethodPost:
             [self queryForPostRequest:request atUrl:url withParameters:parameters credential:credential];
             break;
-
+            
         case WKRequestMethodPut:
             [self queryForPutRequest:request atUrl:url withParameters:parameters];
             break;
-
+            
         case WKRequestMethodSubscribe:
             [self queryForSubscribeRequest:request atUrl:url withParameters:parameters];
             break;
-
+            
         case WKRequestMethodUnsubscribe:
             [self queryForUnsubscribeRequest:request atUrl:url withParameters:parameters];
             break;
-
+            
         default:
             return;
     }
-
+    
     [self configureAndExecuteRequest:request credential:credential completion:completion];
-
+    
     [self clean];
 }
 
 - (void)queryForGetRequest:(NSMutableURLRequest*)request atUrl:(NSString*)stringUrl withParameters:(NSDictionary*) parameters
 {
-    NSString *urlWithParams = [self concatUrl:stringUrl withGetRequestParameters:parameters];
-
+    NSString *urlWithParams = [self concat:stringUrl withParameters:parameters];
+    
     NSURL *url = [NSURL URLWithString:[urlWithParams stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
+    
     request.URL         = url;
     request.HTTPBody    = nil;
     request.HTTPMethod  = @"GET";
-
+    
     request.allHTTPHeaderFields = self.headers;
     self.headers = nil;
 }
@@ -208,20 +208,31 @@ static WKRequest *instance;
 
 - (void)queryForPostRequest:(NSMutableURLRequest*)request atUrl:(NSString*)stringUrl withParameters:(id)parameters credential:(WKRequestCredential *)credential
 {
-
     [self transformUrl:&stringUrl withUrlParams:self.urlParameters];
-
+    
     NSURL *url = [NSURL URLWithString:[stringUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
+    
     request.URL = url;
     request.HTTPMethod = @"POST";
-
+    
     if(parameters && !credential)
     {
-        NSData *dataToPost = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:nil];
-
+        NSData *dataToPost;
+        
+        // x-www-form-urlencoded encoding
+        if([self.headers.allValues containsObject:@"application/x-www-form-urlencoded"])
+        {
+            NSString *params = [self concat:@"" withParameters:parameters];
+            dataToPost = [params dataUsingEncoding:NSUTF8StringEncoding];
+        }
+        // JSON encoding by default
+        else
+        {
+            dataToPost = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:nil];
+        }
+        
         request.HTTPBody = dataToPost;
-
+        
         [self.allHeaders setObject:@"application/json" forKey:@"Content-Type"];
     }
     else if(credential && !parameters)
@@ -236,18 +247,18 @@ static WKRequest *instance;
 - (void)queryForPutRequest:(NSMutableURLRequest*)request atUrl:(NSString*)stringUrl withParameters:(id)parameters
 {
     NSMutableString *mutableStringUrl = [NSMutableString stringWithString:stringUrl];
-
+    
     NSURL *url = [NSURL URLWithString:[mutableStringUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
+    
     request.URL = url;
     request.HTTPMethod = @"PUT";
-
+    
     if(parameters)
     {
         NSData *dataToPost = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:nil];
         request.HTTPBody = dataToPost;
     }
-
+    
     [self.allHeaders setObject:@"application/json" forKey:@"Content-Type"];
 }
 
@@ -256,18 +267,18 @@ static WKRequest *instance;
 - (void)queryForSubscribeRequest:(NSMutableURLRequest*)request atUrl:(NSString*)stringUrl withParameters:(id)parameters
 {
     NSMutableString *mutableStringUrl = [NSMutableString stringWithString:stringUrl];
-
+    
     NSURL *url = [NSURL URLWithString:[mutableStringUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
+    
     request.URL = url;
     request.HTTPMethod = @"SUBSCRIBE";
-
+    
     if(parameters)
     {
         NSData *dataToPost = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:nil];
         request.HTTPBody = dataToPost;
     }
-
+    
     [self.allHeaders setObject:@"application/json" forKey:@"Content-Type"];
 }
 
@@ -276,53 +287,52 @@ static WKRequest *instance;
 - (void)queryForUnsubscribeRequest:(NSMutableURLRequest*)request atUrl:(NSString*)stringUrl withParameters:(id)parameters
 {
     NSMutableString *mutableStringUrl = [NSMutableString stringWithString:stringUrl];
-
+    
     NSURL *url = [NSURL URLWithString:[mutableStringUrl stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-
+    
     request.URL = url;
     request.HTTPMethod = @"UNSUBSCRIBE";
-
+    
     if(parameters)
     {
         NSData *dataToPost = [NSJSONSerialization dataWithJSONObject:parameters options:NSJSONWritingPrettyPrinted error:nil];
         request.HTTPBody = dataToPost;
     }
-
+    
     [self.allHeaders setObject:@"application/json" forKey:@"Content-Type"];
 }
-
 
 //--------------------------------------------------------------------------------------------------
 #pragma mark - Useful methods
 //--------------------------------------------------------------------------------------------------
 
-- (NSString *)concatUrl:(NSString *)url withGetRequestParameters:(NSDictionary *)parameters
+- (NSString *)concat:(NSString *)string withParameters:(NSDictionary *)parameters
 {
-    if(![parameters isKindOfClass:NSDictionary.class]) return url;
-
-    NSMutableString *mutableStringUrl = [NSMutableString stringWithString:url];
-
+    if(![parameters isKindOfClass:NSDictionary.class]) return string;
+    
+    NSMutableString *mutableStringUrl = [NSMutableString stringWithString:string];
+    
     int i = 0;
     for(NSString* key in [parameters allKeys])
     {
-        if(i == 0)  [mutableStringUrl appendString:@"?"];
-        else        [mutableStringUrl appendString:@"&"];
-
+        if(i == 0 && string.length > 0)    [mutableStringUrl appendString:@"?"];
+        else if(i > 0)                  [mutableStringUrl appendString:@"&"];
+        
         [mutableStringUrl appendFormat:@"%@=%@", key, [parameters objectForKey:key]];
-
+        
         i++;
     }
-
+    
     return mutableStringUrl;
 }
 
 - (void)transformUrl:(NSString **)url withUrlParams:(id)parameters
 {
     NSString *urlWithParams = nil;
-
+    
     if(self.urlParameters)
     {
-        urlWithParams = [self concatUrl:*url withGetRequestParameters:parameters];
+        urlWithParams = [self concat:*url withParameters:parameters];
         *url = urlWithParams;
     }
 }
@@ -330,11 +340,11 @@ static WKRequest *instance;
 - (void)configureAndExecuteRequest:(NSMutableURLRequest*)request credential:(WKRequestCredential *)credential completion:(CompletionHandler)completion
 {
     if(credential) [self.allHeaders setObject:[NSString stringWithFormat:@"%@ %@", [WKRequestTokenManager sharedInstance].tokenType, [WKRequestTokenManager sharedInstance].token] forKey:@"Authorization"];
-
+    
     [self.allHeaders addEntriesFromDictionary:self.headers];
     request.allHTTPHeaderFields = self.allHeaders;
     request.timeoutInterval = self.timeoutInterval;
-
+    
     if(request.URL && request.URL.scheme && request.URL.host) [self executeTaskWithRequest:request completion:completion];
 }
 
@@ -342,7 +352,7 @@ static WKRequest *instance;
 {
     // Init again
     self.allHeaders = [NSMutableDictionary new];
-
+    
     self.headers = nil;
     self.urlParameters = nil;
     self.timeoutInterval = kDefaultTimeOutInterval;
@@ -362,7 +372,6 @@ static WKRequest *instance;
     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
 }
 
-
 //--------------------------------------------------------------------------------------------------
 #pragma mark - Session Task for HTTP
 //--------------------------------------------------------------------------------------------------
@@ -370,16 +379,16 @@ static WKRequest *instance;
 - (void)executeTaskWithRequest:(NSMutableURLRequest*)request completion:(CompletionHandler)completion
 {
     NSURLSession *session = [NSURLSession sharedSession];
-
+    
     [self showNetworkActivity];
-
+    
     NSURLSessionTask *task = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-
+        
         [self hideNetworkActivity];
-
+        
         NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
         self.responseFields = ((NSHTTPURLResponse *)response).allHeaderFields;
-
+        
         if (completion)
         {
             if (statusCode >= 200 && statusCode <= 299)
@@ -404,7 +413,6 @@ static WKRequest *instance;
         }
     }];
 
-    
     [self manageTask:task];
 }
 
